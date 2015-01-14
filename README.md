@@ -67,7 +67,7 @@ Example usage (with Mongoid):
       end
     end
 
-    # app/workers/parser_worker.rb
+    # app/daemons/parser_worker.rb
     class ParserWorker < RailsDaemons::Worker
       def tick
         3 # in seconds
@@ -106,6 +106,51 @@ Example usage (with Mongoid):
     end  
 
   ```
+
+Service script:
+
+```
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides:          parser_worker
+# Required-Start:    $all
+# Required-Stop:     $network $local_fs $syslog
+# Default-Start:     2 3 4 5
+# Default-Stop:      0 1 6
+# Short-Description: Start daemon at boot
+# Description:       Enable daemon at boot time.
+### END INIT INFO
+
+set -u
+set -e
+
+# Change these to match your app:
+APP_NAME=app
+ENV=production
+USER=user
+APP_ROOT="/home/$USER/$APP_NAME/current"
+
+SET_PATH="cd $APP_ROOT; rvm use `cat $APP_ROOT/.ruby-version`@`cat $APP_ROOT/.ruby-gemset`"
+OUT=">> $APP_ROOT/log/parser_worker.$ENV.monit.log 2>&1"
+
+cd $APP_ROOT || exit 1
+
+case ${1-help} in
+start)
+  su - $USER -c "$SET_PATH; RAILS_ENV=$ENV bundle exec thor daemon:start ParserWorker $OUT"
+  ;;
+stop)
+  su - $USER -c "$SET_PATH; RAILS_ENV=$ENV bundle exec thor daemon:stop ParserWorker $OUT"
+  ;;
+restart|reload)
+  su - $USER -c "$SET_PATH; RAILS_ENV=$ENV bundle exec thor daemon:restart ParserWorker $OUT"
+  ;;
+*)
+  echo >&2 "Usage: $0 <start|stop|restart>"
+  exit 1
+  ;;
+esac 
+```
 
 ## Contributing
 
