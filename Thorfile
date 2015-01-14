@@ -1,3 +1,4 @@
+# https://shvets.github.io/blog/2013/12/14/using_thor_as_rake_replacement.html
 unless defined? Thor::Runner
   require 'bundler'
 

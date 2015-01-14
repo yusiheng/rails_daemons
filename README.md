@@ -2,8 +2,6 @@
 
 Daemons for Rails. Can be controlled by [https://github.com/erikhuda/thor|Thor] on the host or remotely by [https://github.com/capistrano/capistrano|Capistrano]. Can be monitored and automatically restarted by [https://mmonit.com/monit/|Monit]. When daemon restarts the new worker hasn't started till the old one is shutdowned. Workers can be gracefully stopped on ```Ctrl + C```.
 
-The gem based on [|]
-
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -20,13 +18,19 @@ Or install it yourself as:
 
 ## Usage
 
-Create daemon worker. It should have two methods: 
+  1. Create daemon worker. It should have atleast one method: 
   
-  * ```tick``` - delay between daemon cycles (in seconds)
-  * ```work``` - main work that should be done by daemon
+    * ```work``` - main work that should be done by daemon
+
+  2. Add the following code to the Thorfile (create in root app path if not exists)
+
+    ```ruby
+      require "rails_daemons/tasks"
+    ```
 
 Also you can specify:
 
+  * ```tick``` - delay between daemon cycles (in seconds)
   * ```start``` - work that should be done on the daemon`s start
   * ```shutdown``` - work that should be done before the daemon`s stop (ie, store raised error to database)
 
