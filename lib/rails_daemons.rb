@@ -1,5 +1,5 @@
 require "rails_daemons/version"
+require "rails_daemons/railtie" if defined?(Rails)
 
 module RailsDaemons
-  # Your code goes here...
 end

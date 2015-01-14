@@ -33,6 +33,7 @@ Also you can specify:
 Example usage (with Mongoid):
 
   ```ruby
+    # app/models/parsing.rb
     class Parsing
       include Mongoid::Document
 
@@ -55,13 +56,14 @@ Example usage (with Mongoid):
 
         # do the job
 
-      rescue Exception => e
+      rescue => e
         logger.info e.inspect
         
         set( state: 'halted' )
       end
     end
 
+    # app/workers/parser_worker.rb
     class ParserWorker < RailsDaemons::Worker
       def tick
         3 # in seconds
