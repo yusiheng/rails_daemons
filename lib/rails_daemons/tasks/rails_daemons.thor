@@ -1,6 +1,6 @@
 require 'thor/rails'
 
-module RailsAdmin
+module RailsDaemons
   class Daemon < Thor
     include Thor::Rails
     namespace :daemon
