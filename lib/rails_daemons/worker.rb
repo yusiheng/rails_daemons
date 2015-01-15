@@ -1,4 +1,4 @@
-# require 'daemon_utils'
+require 'rails_daemons/utils'
 require 'unicorn/util'
 require 'active_support/concern'
 
@@ -9,7 +9,7 @@ module RailsDaemons
     included do 
       def daemonize
         pid = fork do
-          $logger = DaemonUtils.logger( "#{self.class.worker_name}.#{Rails.env}.log" )
+          $logger = Utils.logger( "#{self.class.worker_name}.#{Rails.env}.log" )
           $logger.level = Logger::INFO
 
           working
@@ -65,7 +65,7 @@ module RailsDaemons
       end
 
       def starting
-        $0 = "RAILS_ENV=#{Rails.env} " + DaemonUtils.join( '' ).to_s + " bundle exec thor daemon:start #{self.class}"
+        $0 = "RAILS_ENV=#{Rails.env} " + Utils.join( '' ).to_s + " bundle exec thor daemon:start #{self.class}"
 
         redirect_io
         start
@@ -77,7 +77,7 @@ module RailsDaemons
         begin; STDIN.reopen "/dev/null"; rescue ::Exception; end
 
         begin
-          STDOUT.reopen( DaemonUtils.join( 'log', "#{self.class.worker_name}.#{Rails.env}.out.log" ), "a" )
+          STDOUT.reopen( Utils.join( 'log', "#{self.class.worker_name}.#{Rails.env}.out.log" ), "a" )
           STDOUT.sync = true
         rescue ::Exception
           begin; STDOUT.reopen "/dev/null"; rescue ::Exception; end
@@ -185,7 +185,7 @@ module RailsDaemons
       end
 
       def pid_file
-        DaemonUtils.join( 'tmp', 'pids', "#{worker_name}.#{Rails.env}.pid" )
+        Utils.join( 'tmp', 'pids', "#{worker_name}.#{Rails.env}.pid" )
       end
 
       def worker_name
