@@ -22,4 +22,4 @@ require 'capistrano/deploy'
 # require 'capistrano/rails/assets'
 # require 'capistrano/rails/migrations'
 
-require 'rails_daemons/capistano'
+require 'rails_daemons/capistrano'

@@ -4,4 +4,4 @@ if defined?(Capistrano::Version) && Gem::Version.new(Capistrano::Version).releas
   raise "RailsDaemons requires Capistrano 3.x"
 end
 
-load File.expand_path("../tasks.cap", __FILE__)
+load File.expand_path("../tasks/rails_daemons.cap", __FILE__)

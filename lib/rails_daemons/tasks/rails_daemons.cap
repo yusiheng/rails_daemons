@@ -1,0 +1,40 @@
+namespace :daemon do
+  desc 'Start background worker'
+  task :start, :worker_name do |task, args|
+    raise 'Worked is not specified' if args[:worker_name].nil?
+    
+    on roles(:app) do
+      within release_path do
+        with rails_env: fetch(:rails_env) do
+          execute :bundle, :exec, :thor, "daemon:start #{args[:worker_name]}"
+        end
+      end
+    end
+  end
+
+  desc 'Restart background worker'
+  task :restart, :worker_name do |task, args|
+    raise 'Worked is not specified' if args[:worker_name].nil?
+
+    on roles(:app) do
+      within release_path do
+        with rails_env: fetch(:rails_env) do
+          execute :bundle, :exec, :thor, "daemon:restart #{args[:worker_name]}"
+        end
+      end
+    end
+  end
+
+  desc 'Stop background worker'
+  task :stop, :worker_name do |task, args|
+    raise 'Worked is not specified' if args[:worker_name].nil?
+
+    on roles(:app) do
+      within release_path do
+        with rails_env: fetch(:rails_env) do
+          execute :bundle, :exec, :thor, "daemon:stop #{args[:worker_name]}"
+        end
+      end
+    end
+  end
+end

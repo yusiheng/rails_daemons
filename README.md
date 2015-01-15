@@ -18,17 +18,33 @@ Or install it yourself as:
 
     $ gem install rails_daemons
 
+Capistrano integration:
+    
+    Add ```require 'rails_daemons/capistrano'``` to Capfile
+
+    This will get available commands:
+
+    ```
+      cap production daemon:start[ParserWorker]
+      cap production daemon:restart[ParserWorker]
+      cap production daemon:stop[ParserWorker]
+
+Thor tasks:
+    
+    Add ```require 'rails_daemons/thor'``` to Thorfile (create in root app path if not exists)
+
+    This will get available commands:
+
+    ```
+      thor daemon:start ParserWorker
+      thor daemon:restart ParserWorker
+      thor daemon:stop ParserWorker
+
 ## Usage
 
-  1. Create daemon worker. It should have atleast one method: 
+  Create daemon worker. It should have atleast one method: 
   
     * ```work``` - main work that should be done by daemon
-
-  2. Add the following code to the Thorfile (create in root app path if not exists)
-
-    ```ruby
-      require "rails_daemons/tasks"
-    ```
 
 Also you can specify:
 
