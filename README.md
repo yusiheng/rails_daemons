@@ -1,6 +1,8 @@
 # RailsDaemons
 
-Daemons for Rails. Can be controlled by [https://github.com/erikhuda/thor|Thor] on the host or remotely by [https://github.com/capistrano/capistrano|Capistrano]. Can be monitored and automatically restarted by [https://mmonit.com/monit/|Monit]. When daemon restarts the new worker hasn't started till the old one is shutdowned. Workers can be gracefully stopped on ```Ctrl + C```.
+[Visit GitHub!](www.github.com)
+
+Advanced daemons for Rails. Can be controlled by [Thor](https://github.com/erikhuda/thor) on the host or remotely by [Capistrano](https://github.com/capistrano/capistrano). Can be monitored and automatically restarted by [Monit](https://mmonit.com/monit/). When daemon restarts the new worker hasn't started till the old one is gracefully shutdowned. Supports USR1 signal sent by logrotate.
 
 ## Installation
 
