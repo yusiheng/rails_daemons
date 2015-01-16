@@ -6,7 +6,7 @@ namespace :daemon do
     on roles(:app) do
       within release_path do
         with rails_env: fetch(:rails_env) do
-          execute :bundle, :exec, :thor, "daemon:start #{args[:worker_name]}"
+          execute :bundle, :exec, :daemon, "start #{args[:worker_name]}"
         end
       end
     end
@@ -19,7 +19,7 @@ namespace :daemon do
     on roles(:app) do
       within release_path do
         with rails_env: fetch(:rails_env) do
-          execute :bundle, :exec, :thor, "daemon:restart #{args[:worker_name]}"
+          execute :bundle, :exec, :daemon, "restart #{args[:worker_name]}"
         end
       end
     end
@@ -32,7 +32,7 @@ namespace :daemon do
     on roles(:app) do
       within release_path do
         with rails_env: fetch(:rails_env) do
-          execute :bundle, :exec, :thor, "daemon:stop #{args[:worker_name]}"
+          execute :bundle, :exec, :daemon, "stop #{args[:worker_name]}"
         end
       end
     end

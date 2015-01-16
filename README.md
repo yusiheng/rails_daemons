@@ -1,8 +1,6 @@
 # RailsDaemons
 
-[Visit GitHub!](www.github.com)
-
-Advanced daemons for Rails. Can be controlled by [Thor](https://github.com/erikhuda/thor) on the host or remotely by [Capistrano](https://github.com/capistrano/capistrano). Can be monitored and automatically restarted by [Monit](https://mmonit.com/monit/). When daemon restarts the new worker hasn't started till the old one is gracefully shutdowned. Supports USR1 signal sent by logrotate.
+Background workers for Rails. The gem is designed to safely handling exceptions occured in workers. Daemons restarts gracefully to achieve zerro downtime. RailsDaemons includes [Capistrano](https://github.com/capistrano/capistrano) and [Monit](https://mmonit.com/monit/) support. The gem also supports logrotate by safely handling signal USR1.
 
 ## Installation
 
@@ -18,39 +16,45 @@ Or install it yourself as:
 
     $ gem install rails_daemons
 
-Capistrano integration:
+## Capistrano integration
     
-    Add ```require 'rails_daemons/capistrano'``` to Capfile
+Add ```require 'rails_daemons/capistrano'``` to Capfile
 
-    This will get available commands:
+This will get available commands:
 
-    ```
-      cap production daemon:start[ParserWorker]
-      cap production daemon:restart[ParserWorker]
-      cap production daemon:stop[ParserWorker]
+```
+  cap production daemon:start[<worker_name>]
+  cap production daemon:restart[<worker_name>]
+  cap production daemon:stop[<worker_name>]
+```
 
-Thor tasks:
+## Background worker controls
     
-    Add ```require 'rails_daemons/thor'``` to Thorfile (create in root app path if not exists)
+```
+  bundle exec daemon start <worker_name>
+  bundle exec daemon restart <worker_name>
+  bundle exec daemon stop <worker_name>
+```
 
-    This will get available commands:
+## Worker construction
 
-    ```
-      thor daemon:start ParserWorker
-      thor daemon:restart ParserWorker
-      thor daemon:stop ParserWorker
+Create background worker.
 
-## Usage
+```ruby
+  class ParserWorker
+    include RailsDaemons::Worker
 
-  Create daemon worker. It should have atleast one method: 
-  
-    * ```work``` - main work that should be done by daemon
+    def work
+      # your work here
+    end
+  end
+```
 
 Also you can specify:
 
-  * ```tick``` - delay between daemon cycles (in seconds)
-  * ```start``` - work that should be done on the daemon`s start
-  * ```shutdown``` - work that should be done before the daemon`s stop (ie, store raised error to database)
+  * ```tick``` - delay between daemon cycles (in seconds, default 1.0)
+  * ```start``` - work that should be done once on the daemon`s start (and restart)
+  * ```shutdown``` - work that should be done before the daemon`s stop (either on exception or regular stop)
 
 Example usage (with Mongoid):
 
@@ -86,7 +90,9 @@ Example usage (with Mongoid):
     end
 
     # app/daemons/parser_worker.rb
-    class ParserWorker < RailsDaemons::Worker
+    class ParserWorker
+      include RailsDaemons::Worker
+
       def tick
         3 # in seconds
       end
@@ -125,12 +131,14 @@ Example usage (with Mongoid):
 
   ```
 
-Service script:
+## Monit integration:
+
+Put the following code to /etc/init.d/<worker_name>, replace <worker_name> with you name.
 
 ```
 #!/bin/bash
 ### BEGIN INIT INFO
-# Provides:          parser_worker
+# Provides:          <worker_name>
 # Required-Start:    $all
 # Required-Stop:     $network $local_fs $syslog
 # Default-Start:     2 3 4 5
@@ -149,25 +157,56 @@ USER=user
 APP_ROOT="/home/$USER/$APP_NAME/current"
 
 SET_PATH="cd $APP_ROOT; rvm use `cat $APP_ROOT/.ruby-version`@`cat $APP_ROOT/.ruby-gemset`"
-OUT=">> $APP_ROOT/log/parser_worker.$ENV.monit.log 2>&1"
+OUT=">> $APP_ROOT/log/worker_name.$ENV.monit.log 2>&1"
 
 cd $APP_ROOT || exit 1
 
 case ${1-help} in
 start)
-  su - $USER -c "$SET_PATH; RAILS_ENV=$ENV bundle exec thor daemon:start ParserWorker $OUT"
+  su - $USER -c "$SET_PATH; RAILS_ENV=$ENV bundle exec daemon start <worker_name> $OUT"
   ;;
 stop)
-  su - $USER -c "$SET_PATH; RAILS_ENV=$ENV bundle exec thor daemon:stop ParserWorker $OUT"
+  su - $USER -c "$SET_PATH; RAILS_ENV=$ENV bundle exec daemon stop <worker_name> $OUT"
   ;;
 restart|reload)
-  su - $USER -c "$SET_PATH; RAILS_ENV=$ENV bundle exec thor daemon:restart ParserWorker $OUT"
+  su - $USER -c "$SET_PATH; RAILS_ENV=$ENV bundle exec daemon restart <worker_name> $OUT"
   ;;
 *)
   echo >&2 "Usage: $0 <start|stop|restart>"
   exit 1
   ;;
 esac 
+```
+
+Monit task:
+
+```
+check process <worker_name> with pidfile /<path_to_project>/current/tmp/pids/<worker_name>.production.pid
+  start program = "/etc/init.d/<worker_name> start"
+  stop program = "/etc/init.d/<worker_name> stop"
+  if changed pid for 3 times within 5 cycles then restart
+  if 5 restarts within 5 cycles then timeout
+```
+
+## Logrotate integration
+
+```
+/<path_to_project>/shared/log/*.log
+{
+        su <user> <group>
+        daily
+        missingok
+        rotate 360
+        compress
+        delaycompress
+        notifempty
+    dateext
+        create 0660 <user> <group>
+        postrotate
+                [ ! -f /<path_to_project>/shared/tmp/pids/unicorn.pid ] || kill -USR1 `cat /<path_to_project>/shared/tmp/pids/unicorn.pid`
+                [ ! -f /<path_to_project>/shared/tmp/pids/<worker_name>.production.pid ] || kill -USR1 `cat /<path_to_project>/shared/tmp/pids/<worker_name>.production.pid`
+        endscript
+}
 ```
 
 ## Contributing
