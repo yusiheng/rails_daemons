@@ -1,4 +1,5 @@
 require 'rails_daemons/utils'
+require 'unicorn'
 require 'unicorn/util'
 require 'active_support/concern'
 
